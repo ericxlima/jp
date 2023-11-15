@@ -1,5 +1,5 @@
 FROM openjdk:17-alpine
 WORKDIR /app
-COPY . /app
-RUN javac JP.java
-CMD [ "java", "JP" ]
+COPY src/main/java/com/ericxlima/ProcessMonitor /app
+RUN javac Main.java
+CMD [ "java", "Main" ]
