@@ -21,10 +21,31 @@ public class ProcessManager {
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
+                boolean skipFirstLine = true;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
-                }
+                    if (skipFirstLine) {
+                        skipFirstLine = false;
+                        continue;
+                    }
 
+                    System.out.println(line);
+                    String[] tokens = line.trim().split("\\s+");
+                    if (tokens.length > 3) {
+                        try {
+                            int pid = Integer.parseInt(tokens[0]);
+                            String processName = tokens[tokens.length - 1];
+
+                            java.io.File file = new java.io.File("/proc/" + pid + "/");
+                            if (file.exists()) {
+                                measureCPUUsage(pid, processName);
+                            } else {
+                                System.out.println("Processo " + pid + " não está mais ativo.");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Erro ao converter PID para número inteiro: " + e.getMessage());
+                        }
+                    }
+                }
                 int exitCode = process.waitFor();
                 System.out.println("Comando executado com código de saída: " + exitCode);
 
@@ -36,4 +57,13 @@ public class ProcessManager {
         }
     }
 
+    public void measureCPUUsage(int pid, String processName) {
+        CPUUsage cpuUsage = new CPUUsage();
+        double cpuUsageResult = cpuUsage.measureCPUUsage(pid);
+        if (cpuUsageResult != -1.0) {
+            System.out.println("Uso de CPU do processo " + pid + " (" + processName + "): " + cpuUsageResult + "%");
+        } else {
+            System.out.println("Erro ao medir o uso de CPU para o processo " + pid);
+        }
+    }
 }
